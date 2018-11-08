@@ -101,14 +101,42 @@ export default class FlightRoutePlanner
 		// get all latitude lines crossing the rotated polygons
 		const latLines = rotatedPolygon.getNumOfLatAcrossingPolygon(space);
 
-		// try to draw the rotated polygon
+		// try to draw the rotated polygon, one could comment this out safely
 		GaodeHelper.getInstance().drawPolygon(rotatedPolygon, "#6638F0", "#6638F0", 12);
 
 		const polylines: Point[] = [];
-
 		const rotatedPolygonVertices = rotatedPolygon.getVertices();
 
-		// TODO: Now we have all corssed lines and points in `latLines`, we could work on optimal solutions with these data in hand
+		const lines = [];
+		for (var i = 0; i < latLines.len; i++)
+		{
+			const line: Point[] = [];
+			// tranverse all vertices on the rotated polygon
+			for (var j = 0; j < rotatedPolygonVertices.length; j++)
+			{
+				const vertex1 = rotatedPolygonVertices[j];
+				const vertex2 = rotatedPolygonVertices[(j + 1) % rotatedPolygonVertices.length];
+				const vector = new Vector(vertex1.getPointInArray(), vertex2.getPointInArray());
+				const point = vector.getPointOnVectorWithY(rotatedPolygon.getOutterBound().vertices[0].getLatLng().lat - i * latLines.lat);
+
+				if (point)
+				{
+					line.push(point)
+				}
+			}
+
+			// ignore if the line only intercects the polygon with one single point,
+			// or both points are the same
+			// TODO: more corner cases?
+			if (line.length < 2 || (line[0].getLatLng().lat === line[1].getLatLng().lat && line[0].getLatLng().lng === line[1].getLatLng().lng))
+			{
+				continue;
+			}
+
+			lines.push(line);
+		}
+
+		// TODO: Now we have all corssed lines and points in `lines`, we could work on optimal solutions with these data in hand
 
 		return [];
 	}

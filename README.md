@@ -77,7 +77,7 @@ To work on it, one could start looking at `planForConcavePolygon2` method in `Fl
 Pseudo code
 
 ```
-Get the rotated polygon
+Rotate the polygon with `degree`
 Get all intersected latitudes that are crossing the rotated polygon
 Mark all lines as `unvisited`
 Initialize `polylines` to be empty list (this will be the final result)
@@ -96,4 +96,6 @@ while (there is unvisited line)
 	`direction` = !direction (reversed direction)
 	mark `points` as visited
 	if there are `unvisited points` remaining in the `line`, move the `line ` to the end of `unvisited line` list
+
+Rotate `polylines` back with `degree`
 ```

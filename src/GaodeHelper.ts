@@ -108,6 +108,8 @@ class GaodeHelper
 		});
 
 		this._map.add(l);
+
+		return l;
 	}
 
 	/**

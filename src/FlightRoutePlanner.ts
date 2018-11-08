@@ -11,9 +11,9 @@ export default class FlightRoutePlanner
 	public static planForConvexPolygon(polygon: Polygon, space: number, rotate: number)
 	{
 		const bounds = polygon.getOutterBound();
-		const latLines = polygon.getNumOfLatAcrossingPolygon(space);
-
 		const rotatedPolygon = polygon.rotate(-1 * rotate);
+		const latLines = rotatedPolygon.getNumOfLatAcrossingPolygon(space);
+
 
 		// try to draw the rotated polygon
 		// GaodeHelper.getInstance().drawPolygon(rotatedPolygon, "#6638F0", "#6638F0", 12);
@@ -30,7 +30,7 @@ export default class FlightRoutePlanner
 				const vertex1 = rotatedPolygonVertices[j];
 				const vertex2 = rotatedPolygonVertices[(j + 1) % rotatedPolygonVertices.length];
 				const vector = new Vector(vertex1.getPointInArray(), vertex2.getPointInArray());
-				const point = vector.getPointOnVectorWithY(bounds.vertices[0].getLatLng().lat - i * latLines.lat);
+				const point = vector.getPointOnVectorWithY(rotatedPolygon.getOutterBound().vertices[0].getLatLng().lat - i * latLines.lat);
 
 				if (point)
 				{

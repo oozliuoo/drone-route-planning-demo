@@ -1,4 +1,5 @@
 import * as math from "mathjs";
+import { Point } from "./Point";
 
 /**
  * 角度转弧度
@@ -17,4 +18,22 @@ export function degreesToRadians(degrees)
 export function radiansToDegrees(radians)
 {
 	return radians * 180 / Math.PI;
+}
+
+/**
+ * Check if a line of points has been visited completely or not
+ *
+ * @param {Point[]} line - line to be checked
+ */
+export function lineVisited(line: Point[])
+{
+	for (let p of line)
+	{
+		if (!p.getVisited())
+		{
+			return false;
+		}
+	}
+
+	return true;
 }

@@ -16,10 +16,16 @@ class Point
 	 */
 	private lng: number;
 
+	/**
+	 * Whether the point has been visited or not
+	 */
+	private visited: boolean;
+
 	constructor(lat: number, lng: number)
 	{
 		this.lat = lat;
 		this.lng = lng;
+		this.visited = false;
 	}
 
 	/**
@@ -83,6 +89,18 @@ class Point
 
 		return EARTH_RADIUS_KM * c * 1000;
 	}
+
+	public setVisited(visited: boolean)
+	{
+		this.visited = visited;
+	}
+
+	public getVisited()
+	{
+		return this.visited;
+	}
+
+
 }
 
 /**

@@ -107,7 +107,7 @@ export default class FlightRoutePlanner
 		const polylines: Point[] = [];
 		const rotatedPolygonVertices = rotatedPolygon.getVertices();
 
-		const lines = [];
+		const lines: Point[][] = [];
 		for (var i = 0; i < latLines.len; i++)
 		{
 			const line: Point[] = [];

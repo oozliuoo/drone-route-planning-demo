@@ -71,3 +71,29 @@ Some utility functions go here
 `CONVEX` polygon situation has been handled already, we need to implement optimal algirithm for `CONCAVE` polygons
 
 To work on it, one could start looking at `planForConcavePolygon2` method in `FlightRouterPlanner`
+
+### IDEA1
+
+Pseudo code
+
+```
+Get the rotated polygon
+Get all intersected latitudes that are crossing the rotated polygon
+Mark all lines as `unvisited`
+Initialize `polylines` to be empty list (this will be the final result)
+Initialize `direction` to be true
+while (there is unvisited line)
+	line = pop the first `unvisited line` in list
+	`points` = the first pair of `points` that could be connected with `polylines` found on this `line`
+	if (the first point in this pair and the last point in `polylines` cannot be connected directly)
+		`points` = find path connecting first point in this pair and the last point in `polylines`
+
+	if `direction`
+		polylines.push(`points`)
+	else
+		polylines.push(`points` in reversed order)
+
+	`direction` = !direction (reversed direction)
+	mark `points` as visited
+	if there are `unvisited points` remaining in the `line`, move the `line ` to the end of `unvisited line` list
+```

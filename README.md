@@ -56,8 +56,6 @@ The main file for route planner, now we have three methods here:
 2. `planForConcavePolygon`: path planning for concave polygon: first decompose the concave polygon into multiple convex polygons, and then execute `planForConvexPolygon` against each resulted convex polygons
 3. `planForConcavePolygon2`: any other research/demo for optimal solution can go here.
 
-### More on planForConvexPolygon
-
 ## GaodeHelper
 
 Helper to draw different objects on gaode map

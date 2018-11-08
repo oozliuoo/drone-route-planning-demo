@@ -1,6 +1,5 @@
 
 const decomp = require("poly-decomp");
-import { createPolygonBounds, calcLatsInPolygon, calcPointInLineWithY, createRotatePolygon } from "./utils";
 import { Polygon } from "./Polygon";
 import { Vector } from "./Vector";
 import { Point } from "./Point";
@@ -10,7 +9,6 @@ export default class FlightRoutePlanner
 {
 	public static planForConvexPolygon(polygon: Polygon, space: number, rotate: number)
 	{
-		const bounds = polygon.getOutterBound();
 		const rotatedPolygon = polygon.rotate(-1 * rotate);
 		const latLines = rotatedPolygon.getNumOfLatAcrossingPolygon(space);
 
@@ -66,7 +64,7 @@ export default class FlightRoutePlanner
 		return recordedLines;
 	}
 
-	public static planForConcavePolygon(polygon: Polygon, space, rotate)
+	public static planForConcavePolygon(polygon: Polygon, space: number, rotate: number)
 	{
 		const latLngs = polygon.getVertices().map((v) =>
 		{
@@ -94,5 +92,24 @@ export default class FlightRoutePlanner
 		}
 
 		return polylines;
+	}
+
+	public static planForConcavePolygon2(polygon: Polygon, space: number, rotate: number)
+	{
+		// rotate the polygon first
+		const rotatedPolygon = polygon.rotate(-1 * rotate);
+		// get all latitude lines crossing the rotated polygons
+		const latLines = rotatedPolygon.getNumOfLatAcrossingPolygon(space);
+
+		// try to draw the rotated polygon
+		GaodeHelper.getInstance().drawPolygon(rotatedPolygon, "#6638F0", "#6638F0", 12);
+
+		const polylines: Point[] = [];
+
+		const rotatedPolygonVertices = rotatedPolygon.getVertices();
+
+		// TODO: Now we have all corssed lines and points in `latLines`, we could work on optimal solutions with these data in hand
+
+		return [];
 	}
 }

@@ -29,7 +29,6 @@
 	import { Component, Prop, Watch } from "vue-property-decorator";
 	import Vue from "vue";
 	import * as VueAMap from 'vue-amap';
-	import { getVector, crossProduct, dotProduct, calcPointInLineWithY } from "../utils";
 	import FlightRoutePlanner from "../FlightRoutePlanner";
 	import { Polygon, PolygonType } from "../Polygon";
 	import { Point } from "../Point";
@@ -98,7 +97,7 @@
 			}
 			else
 			{
-				this.polylines = FlightRoutePlanner.planForConcavePolygon(this.polygon, this.space, parseInt(this.rotate));
+				this.polylines = FlightRoutePlanner.planForConcavePolygon2(this.polygon, this.space, parseInt(this.rotate));
 			}
 		}
 

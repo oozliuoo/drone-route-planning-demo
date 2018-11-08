@@ -1,84 +1,77 @@
 
 const decomp = require("poly-decomp");
 import { createPolygonBounds, calcLatsInPolygon, calcPointInLineWithY, createRotatePolygon } from "./utils";
+import { Polygon } from "./Polygon";
+import { Vector } from "./Vector";
+import { Point } from "./Point";
+import { GaodeHelper } from "./GaodeHelper";
 
 export default class FlightRoutePlanner
 {
-	public static planForConvexPolygon(map, latLngs, space, rotate)
+	public static planForConvexPolygon(polygon: Polygon, space: number, rotate: number)
 	{
-		const bounds = createPolygonBounds(latLngs);
+		const bounds = polygon.getOutterBound();
+		const latLines = polygon.getNumOfLatAcrossingPolygon(space);
 
-		const latLines = calcLatsInPolygon(bounds.latlngs, space);
-		let polylines = [];
+		const rotatedPolygon = rotate !== 0 ? polygon.rotate(-rotate) : polygon;
 
-		var rPolygon = createRotatePolygon(latLngs, bounds, -rotate)
+		const polylines: Point[] = [];
+
+		const rotatedPolygonVertices = rotatedPolygon.getVertices();
 		for (var i = 0; i < latLines.len; i++)
 		{
 			const line = [];
-			/**遍历每一个多边形顶点*/
-			for (var j = 0; j < rPolygon.length; j++)
+			// tranverse all vertices on the rotated polygon
+			for (var j = 0; j < rotatedPolygonVertices.length; j++)
 			{
-				var point = calcPointInLineWithY([
-					rPolygon[j].lng,
-					rPolygon[j].lat,
-				], [
-						rPolygon[this.si(j + 1, rPolygon.length)].lng,
-						rPolygon[this.si(j + 1, rPolygon.length)].lat,
-					], bounds.latlngs[0].lat - i * latLines.lat)
+				const vertex1 = rotatedPolygonVertices[j];
+				const vertex2 = rotatedPolygonVertices[j % rotatedPolygonVertices.length];
+				const vector = new Vector(vertex1.getPointInArray(), vertex2.getPointInArray());
+				const point = vector.getPointOnVectorWithY(bounds.vertices[0].getLatLng().lat - i * latLines.lat);
+
 				if (point)
 				{
 					line.push(point)
 				}
 			}
 
-			/**去掉只有一个交点的纬度线*/
-			if (line.length < 2)
+			// ignore if the line only intercects the polygon with one single point,
+			// or both points are the same
+			// TODO: more corner cases?
+			if (line.length < 2 || line[0][0] === line[1][0])
 			{
 				continue
 			}
 
-			/**去掉两个交点重合的纬度线*/
-			if (line[0][0] === line[1][0])
-			{
-				continue
-			}
-			polylines.push({ lat: line[0][1], lng: line[0][0] });
-			polylines.push({ lat: line[1][1], lng: line[1][0] });
+			polylines.push(i % 2 === 0 ? line[0] : line[1]);
+			polylines.push(i % 2 === 0 ? line[1] : line[0]);
 		}
 
-		const rotatedPolylines = createRotatePolygon(polylines, bounds, rotate);
+		const rotatedPolylines = new Polygon(polylines).rotate(rotate);
+		const rotatedPolylinesVertices = rotatedPolylines.getVertices();
+		const recordedLines = [];
 
-		polylines = [];
-		console.log(rotatedPolylines);
-		for (let i = 0; i < rotatedPolylines.length - 1; i++)
+		// Below are just drawing the polylines on Gaode map
+		for (let i = 0; i < rotatedPolylinesVertices.length - 1; i++)
 		{
-			const line = rotatedPolylines[i];
-			const l = new AMap.Polyline({
-				zIndex: 12,
-				path: [
-					new AMap.LngLat(rotatedPolylines[i].lng, rotatedPolylines[i].lat),
-					new AMap.LngLat(rotatedPolylines[i + 1].lng, rotatedPolylines[i + 1].lat),
-				],
-				strokeColor: "black",
-				lineJoin: "round",
-			});
+			const p1 = new Point(rotatedPolylinesVertices[i].getLatLng().lat, rotatedPolylinesVertices[i].getLatLng().lng);
+			const p2 = new Point(rotatedPolylinesVertices[i + 1].getLatLng().lat, rotatedPolylinesVertices[i + 1].getLatLng().lng);
 
-			map.add(l);
+			const l = GaodeHelper.getInstance().drawPolyline(p1, p2);
 
-			polylines.push(l);
+			recordedLines.push(l);
 		}
 
-		return polylines;
+		return recordedLines;
 	}
 
-	public static planForConcavePolygon(map, latLngs, space, rotate)
+	public static planForConcavePolygon(latLngs, space, rotate)
 	{
 		const concavePolygon = latLngs.map((item) =>
 		{
 			return [item.lat, item.lng];
 		});
 
-		console.log(decomp.makeCCW(concavePolygon));
 		const convexPolygons = decomp.quickDecomp(concavePolygon);
 
 		let polylines = [];
@@ -86,7 +79,7 @@ export default class FlightRoutePlanner
 		for (let i = 0; i < convexPolygons.length; i++)
 		{
 			const c = convexPolygons[i];
-			polylines = polylines.concat(this.planForConvexPolygon(map, c.map((i) =>
+			polylines = polylines.concat(this.planForConvexPolygon(c.map((i) =>
 			{
 				return {
 					lat: i[0],

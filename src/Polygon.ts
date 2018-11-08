@@ -1,11 +1,25 @@
-import { Point } from "./Point";
+import { Point, ILatLng } from "./Point";
 import { Vector } from "./Vector";
 
 enum PolygonType
 {
 	CONVEX = "CONVEX",
 	CONCAVE = "CONCAVE",
-};
+}
+
+interface IBound
+{
+	/**
+	 * Center of the bound, using lat/lng pair to represent
+	 */
+	center: Point;
+
+	/**
+	 * Vertices of the bound, using an array of lat/lng pairs to represent
+	 * the order will be NORTHWEST, NORTHEAST, SOUTHEAST, SOUTHWEST
+	 */
+	vertices: Point[];
+}
 
 class Polygon
 {
@@ -17,16 +31,26 @@ class Polygon
 	/**
 	 * Type of this polygon
 	 */
-	private type: PolygonType
+	private type: PolygonType;
+
+	/**
+	 * Outter bound of this polygon
+	 */
+	private outterBound: IBound;
 
 	constructor(vertices: Point[])
 	{
 		this.vertices = vertices;
 		this.setType();
+		this.setOutterBound();
 	}
 
 	/**
 	 * Check and set type of this polygon
+	 * 
+	 * Here we basically traverse each edge, and the cross product of crosseach pair of consecutive, and the calculate the dot product of
+	 * this result and the norm of the plane. If the polygon is `CONVEX`, we should always get the dot product of the same sign
+	 * during the whole process; otherwise, some of them will be positive and some of them will be negative
 	 */
 	public setType()
 	{
@@ -55,14 +79,105 @@ class Polygon
 		}
 	}
 
+	/**
+	 * Calculate and set the outter bound of this polygon
+	 */
+	public setOutterBound(): void
+	{
+		const lats = [];
+		const lngs = [];
+		const latlngs = this.vertices.map((v) =>
+		{
+			return v.getLatLng();
+		});
+
+		for (var i = 0; i < this.vertices.length; i++)
+		{
+			lats.push(latlngs[i].lat);
+			lngs.push(latlngs[i].lng);
+		}
+		var maxLat = Math.max.apply(Math, lats);
+		var maxLng = Math.max.apply(Math, lngs);
+		var minLat = Math.min.apply(Math, lats);
+		var minLng = Math.min.apply(Math, lngs);
+
+		this.outterBound = {
+			center: new Point((maxLat + minLat) / 2, (maxLng + minLng) / 2),
+			vertices: [
+				new Point(maxLat, minLng),
+				new Point(maxLat, maxLng),
+				new Point(minLat, maxLng),
+				new Point(minLat, minLng),
+			],
+		};
+	}
+
+	/**
+	 * Get number of latitudes acrossing this polygon
+	 * 
+	 * @param {number} space - spacing between latitudes, we use this to determin the number
+	 */
+	public getNumOfLatAcrossingPolygon(space: number)
+	{
+		var lines = parseInt((this.outterBound.vertices[0].distanceToPointOnEarth(this.outterBound.vertices[3]) / space) as any);
+		var lat = (this.outterBound.vertices[0].getLatLng().lat - this.outterBound.vertices[3].getLatLng().lat) / lines;
+
+		return {
+			len: lines + 1,
+			lat: lat
+		}
+	}
+
+	/**
+	 * Rotate a polygon for a certain degree. Basically we are doint transformation for each
+	 * vertex of the polygon
+	 *
+	 * @param {number} degree - degree to be rotated
+	 */
+	public rotate(degree): Polygon
+	{
+		const result = [];
+
+		for (var i = 0; i < this.vertices.length; i++)
+		{
+			const v = this.vertices[i];
+			const outterBound = this.getOutterBound();
+			const transformedPoint = v.transform(outterBound.center.getLatLng().lng, outterBound.center.getLatLng().lat, degree);
+
+			result.push(transformedPoint);
+		}
+
+		return new Polygon(result);
+	}
+
+	/**
+	 * Return type of this polygon
+	 */
 	public getType()
 	{
 		return this.type;
+	}
+
+	/**
+	 * Return the outter bound of this polygon
+	 */
+	public getOutterBound()
+	{
+		return this.outterBound;
+	}
+
+	/**
+	 * Return all vertices of this polygon
+	 */
+	public getVertices()
+	{
+		return this.vertices;
 	}
 }
 
 export
 {
+	IBound,
 	Polygon,
 	PolygonType,
 };

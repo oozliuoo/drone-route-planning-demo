@@ -33,16 +33,17 @@
 	import FlightRoutePlanner from "../FlightRoutePlanner";
 	import { Polygon, PolygonType } from "../Polygon";
 	import { Point } from "../Point";
+	import { GaodeHelper } from "../GaodeHelper";
 
 	@Component({
 		name: "HelloWorld",
 	})
 	export default class HelloWorld extends Vue	{
-		private msg = "Welcome to Your Vue.js App";
+		private msg = "";
 		private amapManager = new VueAMap.AMapManager();
-		private map: any;
+		private markerPoints: Point[] = [];
 		private markers = [];
-		private polygon = null;
+		private polygon: Polygon = null;
 		private polygonType: PolygonType = null;
 		private polylines = [];
 		private rotate = 0;
@@ -60,7 +61,7 @@
 			return {
 				init(o)
 				{
-					self.map = o;
+					GaodeHelper.getInstance(o);
 
 					o.on("click", self.onMapClick);
 				}
@@ -70,17 +71,19 @@
 		private onMapClick(e)
 		{
 			const lnglat = e.lnglat;
-			const marker = new AMap.Marker({
-				position: [lnglat.lng, lnglat.lat]
-			});
-			this.map.add(marker);
 
+			// define point, and draw it
+			const markerPoint = new Point(lnglat.lat, lnglat.lng);
+			const marker = GaodeHelper.getInstance().drawMarker(markerPoint);
+
+			this.markerPoints.push(markerPoint);
 			this.markers.push(marker);
 		}
 
 		private drawFlightRouteClick()
 		{
-			this.map.remove(this.polylines);
+			GaodeHelper.getInstance().remove(this.polylines);
+
 			if (!this.polygon || !this.polygonType)
 			{
 				alert("Please draw a polygon first");
@@ -90,23 +93,11 @@
 
 			if (this.polygonType === PolygonType.CONVEX)
 			{
-				this.polylines = FlightRoutePlanner.planForConvexPolygon(this.map, this.polygon.getPath().map((p) =>
-				{
-					return {
-						lat: p.getLat(),
-						lng: p.getLng(),
-					}
-				}), this.space, this.rotate);
+				this.polylines = FlightRoutePlanner.planForConvexPolygon(this.polygon, this.space, this.rotate);
 			}
 			else
 			{
-				this.polylines = FlightRoutePlanner.planForConcavePolygon(this.map, this.polygon.getPath().map((p) =>
-				{
-					return {
-						lat: p.getLat(),
-						lng: p.getLng(),
-					}
-				}), this.space, this.rotate);
+				this.polylines = FlightRoutePlanner.planForConcavePolygon(this.polygon, this.space, this.rotate);
 			}
 		}
 
@@ -126,45 +117,28 @@
 				return;
 			}
 
-			const path = this.markers.map((m) =>
-			{
-				return new AMap.LngLat(m.getPosition().getLng(), m.getPosition().getLat());
-			});
+			// detect polygon types
+			this.polygon = new Polygon(this.markerPoints);
+			this.polygonType = this.polygon.getType();
 
-			this.polygon = new AMap.Polygon({
-				path,
-				fillColor: "#F78AE0",
-				strokeColor: "#F78AE0",
-				borderWeight: 1,
-				zIndex: 11,
-			});
-
-			this.map.add(this.polygon);
+			// Draw polygon, and remove markers
+			GaodeHelper.getInstance().drawPolygon(this.polygon, "#F78AE0", "#F78AE0", 11);
 			this.markers.forEach((m) =>
 			{
-				this.map.remove(m);
+				GaodeHelper.getInstance().remove(m);
 			})
 			this.markers.length = 0;
-
-			// detect polygon types
-			const polygon = new Polygon(path.map((p) =>
-			{
-				return new Point(p.getLat(), p.getLng());
-			}));
-			this.polygonType = polygon.getType();
 		}
 
 		private onClearClick()
 		{
-			const self = this;
-
 			this.markers.forEach((m) =>
 			{
-				self.map.remove(m);
+				GaodeHelper.getInstance().remove(m);
 			})
 
-			self.map.remove(this.polygon);
-			self.map.remove(this.polylines);
+			GaodeHelper.getInstance().remove(this.polygon);
+			GaodeHelper.getInstance().remove(this.polylines);
 			this.polygon = null;
 			this.polygonType = null;
 			this.polylines = [];

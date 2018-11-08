@@ -1,4 +1,5 @@
 import * as math from "mathjs";
+import { Point } from "./Point";
 
 /**
  * Representing a single vector
@@ -74,6 +75,27 @@ class Vector
 			throw Error("Vector needs to have the same dimensions in order to perform cross product");
 		}
 		return math.cross(this.value(), v.value());
+	}
+
+	/**
+	 * Given a y coordinate, get the point on it with that y
+	 *
+	 * @param {number} y - the given y coordinate
+	 */
+	public getPointOnVectorWithY(y: number)
+	{
+		const s = this.start[1] - this.end[1];
+		let x;
+		if (s)
+		{
+			x = (y - this.start[1]) * (this.start[0] - this.end[0]) / s + this.start[0]
+		}
+		else
+		{
+			return null
+		}
+
+		return ((x > this.start[0] && x > this.end[0]) || (x < this.start[0] && x < this.end[0])) ? null : new Point(x, y);
 	}
 
 	/**

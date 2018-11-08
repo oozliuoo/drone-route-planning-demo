@@ -74,7 +74,7 @@ export default class FlightRoutePlanner
 		});
 		const concavePolygon = latLngs.map((item) =>
 		{
-			return [item.lat, item.lng];
+			return [item.lng, item.lat];
 		});
 
 		const convexPolygons = decomp.quickDecomp(concavePolygon);
@@ -86,9 +86,10 @@ export default class FlightRoutePlanner
 			const c = convexPolygons[i];
 			const vertices = c.map((i) =>
 			{
-				return new Point(i[0], i[1]);
+				return new Point(i[1], i[0]);
 			});
 			const convexPolygon = new Polygon(vertices);
+			// GaodeHelper.getInstance().drawPolygon(convexPolygon, "#6638F0", "#000000", 12);
 			polylines = polylines.concat(this.planForConvexPolygon(convexPolygon, space, rotate));
 		}
 

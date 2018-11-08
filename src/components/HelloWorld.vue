@@ -43,6 +43,7 @@
 		private amapManager = new VueAMap.AMapManager();
 		private markerPoints: Point[] = [];
 		private markers = [];
+		private polygonShape = null;
 		private polygon: Polygon = null;
 		private polygonType: PolygonType = null;
 		private polylines = [];
@@ -110,7 +111,7 @@
 				return;
 			}
 
-			if (this.polygon)
+			if (this.polygonShape)
 			{
 				alert("Already has a polygon, please remove first");
 
@@ -118,16 +119,17 @@
 			}
 
 			// detect polygon types
-			this.polygon = new Polygon(this.markerPoints);
+			this.polygon = new Polygon([].concat(this.markerPoints));
 			this.polygonType = this.polygon.getType();
 
 			// Draw polygon, and remove markers
-			GaodeHelper.getInstance().drawPolygon(this.polygon, "#F78AE0", "#F78AE0", 11);
+			this.polygonShape = GaodeHelper.getInstance().drawPolygon(this.polygon, "#F78AE0", "#F78AE0", 11);
 			this.markers.forEach((m) =>
 			{
 				GaodeHelper.getInstance().remove(m);
 			})
 			this.markers.length = 0;
+			this.markerPoints.length = 0;
 		}
 
 		private onClearClick()
@@ -137,9 +139,9 @@
 				GaodeHelper.getInstance().remove(m);
 			})
 
-			GaodeHelper.getInstance().remove(this.polygon);
+			GaodeHelper.getInstance().remove(this.polygonShape);
 			GaodeHelper.getInstance().remove(this.polylines);
-			this.polygon = null;
+			this.polygonShape = null;
 			this.polygonType = null;
 			this.polylines = [];
 		}

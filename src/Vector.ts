@@ -95,7 +95,7 @@ class Vector
 			return null
 		}
 
-		return ((x > this.start[0] && x > this.end[0]) || (x < this.start[0] && x < this.end[0])) ? null : new Point(x, y);
+		return ((x > this.start[0] && x > this.end[0]) || (x < this.start[0] && x < this.end[0])) ? null : new Point(y, x);
 	}
 
 	/**

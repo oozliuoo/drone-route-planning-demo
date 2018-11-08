@@ -1,4 +1,4 @@
-import { Point } from "./Point";
+import { Point, ILatLng } from "./Point";
 import { Polygon } from "./Polygon";
 
 class GaodeHelper
@@ -108,6 +108,29 @@ class GaodeHelper
 		});
 
 		this._map.add(l);
+	}
+
+	/**
+	 * Convert lat/lng to pixels on map
+	 * 
+	 * @param {Point} p - p containing lat/lng information
+	 * 
+	 */
+	public latlng2px(p: Point)
+	{
+		return this._map.lngLatToContainer(new AMap.LngLat(p.getLatLng().lng, p.getLatLng().lat))
+	}
+
+	/**
+	 * Convert pixels on map to lat/lng
+	 * 
+	 * @param {Array} px - [lng,lat] 
+	*/
+	public px2latlng(px)
+	{
+		const result = this._map.containerToLngLat(new AMap.Pixel(px[0], px[1]));
+
+		return new Point(result.getLat(), result.getLng());
 	}
 }
 

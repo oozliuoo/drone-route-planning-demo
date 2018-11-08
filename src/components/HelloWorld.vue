@@ -46,7 +46,7 @@
 		private polygon: Polygon = null;
 		private polygonType: PolygonType = null;
 		private polylines = [];
-		private rotate = 0;
+		private rotate = "0";
 
 		private space = 100;
 
@@ -93,11 +93,11 @@
 
 			if (this.polygonType === PolygonType.CONVEX)
 			{
-				this.polylines = FlightRoutePlanner.planForConvexPolygon(this.polygon, this.space, this.rotate);
+				this.polylines = FlightRoutePlanner.planForConvexPolygon(this.polygon, this.space, parseInt(this.rotate));
 			}
 			else
 			{
-				this.polylines = FlightRoutePlanner.planForConcavePolygon(this.polygon, this.space, this.rotate);
+				this.polylines = FlightRoutePlanner.planForConcavePolygon(this.polygon, this.space, parseInt(this.rotate));
 			}
 		}
 

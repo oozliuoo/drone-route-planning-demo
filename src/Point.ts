@@ -1,4 +1,5 @@
 import { degreesToRadians } from "./utils";
+import { GaodeHelper } from "./GaodeHelper";
 
 /**
  * Representing a point in Earth Coordinate
@@ -45,18 +46,20 @@ class Point
 		// if no scaling's provided, use 1 as default
 		if (!scaleY) scaleY = 1;
 		if (!scaleX) scaleX = 1;
-		return new Point(
-			scaleX * ((this.lng - centerX) * Math.sin(degInRad) + (this.lng - centerY) * Math.cos(degInRad)) + centerY,
-			scaleY * ((this.lat - centerX) * Math.cos(degInRad) - (this.lng - centerY) * Math.sin(degInRad)) + centerX,
-		);
+
+		const latlngInPx = GaodeHelper.getInstance().latlng2px(new Point(this.lat, this.lng));
+		return GaodeHelper.getInstance().px2latlng([
+			scaleX * ((latlngInPx.x - centerX) * Math.cos(degInRad) - (latlngInPx.y - centerY) * Math.sin(degInRad)) + centerX,
+			scaleY * ((latlngInPx.x - centerX) * Math.sin(degInRad) + (latlngInPx.y - centerY) * Math.cos(degInRad)) + centerY,
+		])
 	}
 
 	/**
-	 * Returns the point information in the format of array: [lat, lng]
+	 * Returns the point information in the format of array: [lng, lat] representing (x, y)
 	 */
 	public getPointInArray()
 	{
-		return [this.lat, this.lng];
+		return [this.lng, this.lat];
 	}
 
 	/**

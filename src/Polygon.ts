@@ -1,5 +1,6 @@
 import { Point, ILatLng } from "./Point";
 import { Vector } from "./Vector";
+import { GaodeHelper } from "./GaodeHelper";
 
 enum PolygonType
 {
@@ -134,15 +135,15 @@ class Polygon
 	 *
 	 * @param {number} degree - degree to be rotated
 	 */
-	public rotate(degree): Polygon
+	public rotate(degree, center?: Point): Polygon
 	{
 		const result = [];
 
 		for (var i = 0; i < this.vertices.length; i++)
 		{
 			const v = this.vertices[i];
-			const outterBound = this.getOutterBound();
-			const transformedPoint = v.transform(outterBound.center.getLatLng().lng, outterBound.center.getLatLng().lat, degree);
+			const outterBoundInPx = GaodeHelper.getInstance().latlng2px(center ? center : this.outterBound.center);
+			const transformedPoint = v.transform(outterBoundInPx.x, outterBoundInPx.y, degree);
 
 			result.push(transformedPoint);
 		}

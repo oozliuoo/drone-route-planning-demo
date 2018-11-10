@@ -195,7 +195,7 @@ export default class FlightRoutePlanner
 
 				GaodeHelper.getInstance().drawMarker(rotatedPolylinesVertices[i], true, i.toString());
 				recordedLines.push(l);
-				await delay(500);
+				await delay(1000);
 			}
 
 			return recordedLines;

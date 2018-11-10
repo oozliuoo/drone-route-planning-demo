@@ -1,6 +1,7 @@
 import { Point, ILatLng } from "./Point";
 import { Vector } from "./Vector";
 import { GaodeHelper } from "./GaodeHelper";
+import { getPointOrientation, collinearPointsOnSameSegment, PointOrientation, isPointOnVector } from "./utils";
 
 enum PolygonType
 {
@@ -149,6 +150,171 @@ class Polygon
 		}
 
 		return new Polygon(result);
+	}
+
+	public findPathForTwoPoints(p1: Point, p2: Point): Point[]
+	{
+		const result: Point[] = [];
+
+		result.push(p1);
+		let tempPoint1 = new Point(p1.getLatLng().lat, p1.getLatLng().lng);
+
+		while (!this.twoPointsCanSeeEachOther(tempPoint1, p2))
+		{
+			const v = this.findNearestReachableVertexForPoint(tempPoint1, p2);
+			result.push(v);
+			tempPoint1 = new Point(v.getLatLng().lat, v.getLatLng().lng);;
+		}
+
+		result.push(p2);
+
+		for (let v of this.vertices)
+		{
+			v.setVisited(false);
+		}
+
+		return result;
+	}
+
+	private findNearestReachableVertexForPoint(p: Point, target: Point): Point
+	{
+		let minDistance = Infinity;
+		let targetVertex: Point = null;
+
+		for (let v of this.vertices)
+		{
+			if (v.getLatLng().lat === p.getLatLng().lat && v.getLatLng().lng === p.getLatLng().lng)
+			{
+				continue;
+			}
+			if (!v.getVisited() && this.twoPointsCanSeeEachOther(v, p))
+			{
+				const d = v.distanceToPointOnEarth(p) + v.distanceToPointOnEarth(target);
+				if (d < minDistance)
+				{
+					minDistance = d;
+					targetVertex = v;
+				}
+			}
+		}
+
+		targetVertex && targetVertex.setVisited(true);
+		return targetVertex;
+	}
+
+	/**
+	 * Check whether a point is inside this polygon
+	 * Following: https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
+	 *
+	 * @param {Point} p - the point to be checked
+	 */
+	public isPointInside(p: Point)
+	{
+		// There must be at least 3 vertices in polygon[]
+		const n = this.vertices.length;
+		if (n < 3) return false;
+
+		// Create a point for line segment from p to infinite
+		const extreme = new Point(p.getLatLng().lat, 1000);
+
+		// Count intersections of the above line with sides of polygon
+		let count = 0;
+		let i = 0;
+		do
+		{
+			const next = (i + 1) % n;
+
+			const vector1 = new Vector(this.vertices[i].getPointInArray(), this.vertices[next].getPointInArray());
+			if (isPointOnVector(vector1, p))
+			{
+				return true;
+			}
+			const vector2 = new Vector(p.getPointInArray(), extreme.getPointInArray());
+			// Check if the line segment from 'p' to 'extreme' intersects
+			// with the line segment from 'polygon[i]' to 'polygon[next]'
+			if (vector1.intersectWithVector(vector2))
+			{
+				// If the point 'p' is colinear with line segment 'i-next',
+				// then check if it lies on segment. If it lies, return true,
+				// otherwise false
+				if (getPointOrientation(this.vertices[i], p, this.vertices[next]) == PointOrientation.COLINEAR)
+				{
+					return collinearPointsOnSameSegment(this.vertices[i], p, this.vertices[next]);
+				}
+
+				count++;
+			}
+			i = next;
+		} while (i != 0);
+
+		// Return true if count is odd, false otherwise
+		return count % 2 === 1;
+	}
+
+	/**
+	 * Check if two points can see each other in this polygon
+	 * 
+	 * @param {Point} p1 - the first point
+	 * @param {Point} p2 - the second point
+	 */
+	public twoPointsCanSeeEachOther(p1: Point, p2: Point)
+	{
+		const vector = new Vector(p1.getPointInArray(), p2.getPointInArray());
+
+		const intersections = this.countIntersectionWithVector(vector);
+		// if we see more than 2 intersections, meaning the path is blocked
+		if (intersections > 2)
+		{
+			return false;
+		}
+		else
+		{
+			// if midpoint is inside polygon, then the path is not blocked; else otherwise
+			return this.isPointInside(new Point(vector.getMid()[1], vector.getMid()[0]));
+		}
+	}
+
+	/**
+	 * Count num of intersections between a vector and this polygon
+	 *
+	 * @param {Vector} v - vector we are looking at
+	 */
+	public countIntersectionWithVector(v: Vector)
+	{
+		const n = this.vertices.length;
+		const intersections: Point[] = [];
+
+		for (let i = 0; i < n; i++)
+		{
+			const next = (i + 1) % n;
+			const vector = new Vector(this.vertices[i].getPointInArray(), this.vertices[next].getPointInArray());
+
+			if (vector.equal(v))
+			{
+				continue;
+			}
+
+			const intersection = vector.intersectWithVector(v);
+			if (intersection)
+			{
+				let hasIntersection = false;
+
+				intersections.forEach((i) =>
+				{
+					if (i.equal(intersection))
+					{
+						hasIntersection = true;
+					}
+				})
+
+				if (!hasIntersection)
+				{
+					intersections.push(intersection);
+				}
+			}
+		}
+
+		return intersections.length;;
 	}
 
 	/**

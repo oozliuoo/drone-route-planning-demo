@@ -1,5 +1,6 @@
 import * as math from "mathjs";
 import { Point } from "./Point";
+import { getPointOrientation, collinearPointsOnSameSegment, PointOrientation, isPointOnVector } from "./utils";
 
 /**
  * Representing a single vector
@@ -9,6 +10,8 @@ class Vector
 	private start: number[];
 
 	private end: number[];
+
+	private midpoint: number[] = [];
 
 	constructor(start: number[], end?: number[])
 	{
@@ -30,6 +33,11 @@ class Vector
 		}
 		this.start = start;
 		this.end = end;
+
+		for (let i = 0; i < this.start.length; i++)
+		{
+			this.midpoint.push((this.start[i] + this.end[i]) / 2);
+		}
 	}
 
 	/**
@@ -63,6 +71,45 @@ class Vector
 		}
 
 		return result;
+	}
+
+	public intersection(v: Vector): Point
+	{
+		// Represent v as a1x + b1y = c1
+		const a1 = v.getEnd()[1] - v.getStart()[1];
+		const b1 = v.getStart()[0] - v.getEnd()[0];
+		const c1 = a1 * (v.getStart()[0]) + b1 * (v.getStart()[1]);
+
+		// Represent this vector as a2x + b2y = c2
+		const a2 = this.getEnd()[1] - this.getStart()[1];
+		const b2 = this.getStart()[0] - this.getEnd()[0];
+		const c2 = a2 * (this.getStart()[0]) + b2 * (this.getStart()[1]);
+
+		const determinant = a1 * b2 - a2 * b1;
+
+		if (determinant == 0)
+		{
+			// The lines are parallel. This is simplified
+			// by returning null
+			return null
+		}
+		else
+		{
+			const x = (b2 * c1 - b1 * c2) / determinant;
+			const y = (a1 * c2 - a2 * c1) / determinant;
+			return new Point(y, x);
+		}
+	}
+
+	/**
+	 * Check if a vector is equivalent to this vector
+	 *
+	 * @param {Vector} v - the other vector
+	 */
+	public equal(v: Vector)
+	{
+		return (this.getStartPoint().equal(v.getStartPoint()) && this.getEndPoint().equal(v.getEndPoint()))
+			|| (this.getEndPoint().equal(v.getStartPoint()) && this.getStartPoint().equal(v.getEndPoint()));
 	}
 
 	/**
@@ -99,6 +146,64 @@ class Vector
 	}
 
 	/**
+	 * Check if two vector intersects with each other or not, this is only for 2-dimensions
+	 *
+	 * @param {Vector} v - vector to be checked against `this` vector
+	 */
+	public intersectWithVector(v: Vector)
+	{
+		if (this.dimension() !== 2 || v.dimension() !== 2)
+		{
+			throw new Error("Only checking 2-dimensions vectors' intersection");
+		}
+
+		const p1 = new Point(this.start[1], this.start[0]);
+		const q1 = new Point(this.end[1], this.end[0]);
+		const p2 = new Point(v.getStart()[1], v.getStart()[0]);
+		const q2 = new Point(v.getEnd()[1], v.getEnd()[0]);
+		// Find the four orientations needed for general and
+		// special cases
+		const o1 = getPointOrientation(p1, q1, p2);
+		const o2 = getPointOrientation(p1, q1, q2);
+		const o3 = getPointOrientation(p2, q2, p1);
+		const o4 = getPointOrientation(p2, q2, q1);
+
+		let result = false;
+
+		if ((isPointOnVector(v, p1) && isPointOnVector(v, q1)) || (isPointOnVector(this, p2) && isPointOnVector(this, q2)))
+		{
+			return null;
+		}
+		// General case
+		else if (o1 != o2 && o3 != o4)
+		{
+			result = true;
+		}
+
+		// Special Cases
+		// p1, q1 and p2 are colinear and p2 lies on segment p1q1
+		else if (o1 == PointOrientation.COLINEAR && collinearPointsOnSameSegment(p1, p2, q1)) result = true;
+
+		// p1, q1 and q2 are colinear and q2 lies on segment p1q1
+		else if (o2 == PointOrientation.COLINEAR && collinearPointsOnSameSegment(p1, q2, q1)) result = true;
+
+		// p2, q2 and p1 are colinear and p1 lies on segment p2q2
+		else if (o3 == PointOrientation.COLINEAR && collinearPointsOnSameSegment(p2, p1, q2)) result = true;
+
+		// p2, q2 and q1 are colinear and q1 lies on segment p2q2
+		else if (o4 == PointOrientation.COLINEAR && collinearPointsOnSameSegment(p2, q1, q2)) result = true;
+
+		if (result)
+		{
+			return this.intersection(v);
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	/**
 	 * Returns dimension of this vector
 	 */
 	public dimension()
@@ -120,6 +225,29 @@ class Vector
 	public getEnd()
 	{
 		return this.end;
+	}
+
+	/**
+	 * Returns the `midpoint` of this vector
+	 */
+	public getMid()
+	{
+		return this.midpoint;
+	}
+
+	public getStartPoint()
+	{
+		return new Point(this.start[1], this.start[0]);
+	}
+
+	public getEndPoint()
+	{
+		return new Point(this.end[1], this.end[0]);
+	}
+
+	public getMidPoint()
+	{
+		return new Point(this.midpoint[1], this.midpoint[0])
 	}
 }
 

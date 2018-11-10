@@ -100,7 +100,11 @@ class Point
 		return this.visited;
 	}
 
-
+	public equal(p: Point)
+	{
+		const EPSILON = 0.0000001;
+		return (p.getLatLng().lat - this.lat < EPSILON) && (p.getLatLng().lng - this.lng < EPSILON);
+	}
 }
 
 /**

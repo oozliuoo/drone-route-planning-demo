@@ -47,11 +47,17 @@ class GaodeHelper
 	 * Draw a marker on a given point on Gaode Map, and return the marker
 	 *
 	 * @param {Point} point - the given point we are drawing a marker on
+	 * @param {boolean} drawLabel - draw label (gps) on marker or not
+	 * @param {string} labelContent - label content to be drew
 	 */
-	public drawMarker(point: Point)
+	public drawMarker(point: Point, drawLabel?: boolean, labelContent?: string)
 	{
 		const marker = new AMap.Marker({
 			position: [point.getLatLng().lng, point.getLatLng().lat],
+			title: `[${point.getLatLng().lng}, ${point.getLatLng().lat}]`,
+			label: drawLabel ? {
+				content: labelContent ? labelContent : `[${point.getLatLng().lng}, ${point.getLatLng().lat}]`,
+			} : null,
 		});
 
 		this._map.add(marker);

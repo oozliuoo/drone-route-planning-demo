@@ -113,6 +113,9 @@ export function isPointOnVector(v: Vector, p: Point)
 	}
 }
 
+/**
+ * Return a random hex color code
+ */
 export function randomHexColorCode()
 {
 	return '#' + '0123456789abcdef'.split('').map(function (v, i, a)
@@ -121,6 +124,9 @@ export function randomHexColorCode()
 	}).join('');
 }
 
+/**
+ * Return a promise for delay
+ */
 export function delay(ms: number)
 {
 	return new Promise(res => setTimeout(res, ms));

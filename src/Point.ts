@@ -54,6 +54,8 @@ class Point
 		if (!scaleX) scaleX = 1;
 
 		const latlngInPx = GaodeHelper.getInstance().latlng2px(new Point(this.lat, this.lng));
+
+		// TODO: For different maps, we need to make sure we are converting gps/pixels correctly to avoid distortions when displaying
 		return GaodeHelper.getInstance().px2latlng([
 			scaleX * ((latlngInPx.x - centerX) * Math.cos(degInRad) - (latlngInPx.y - centerY) * Math.sin(degInRad)) + centerX,
 			scaleY * ((latlngInPx.x - centerX) * Math.sin(degInRad) + (latlngInPx.y - centerY) * Math.cos(degInRad)) + centerY,

@@ -152,6 +152,17 @@ class Polygon
 		return new Polygon(result);
 	}
 
+	/**
+	 * Find a path between two point (p1 to p2) inside polygon, the rule is to not
+	 * stepping out of the polygon
+	 * 
+	 * // TODO: need to improve tho: better to treat it as a classic graph problem, and solve it with classic A* Search algorithem
+	 * 
+	 * @param {Point} p1 - starting point of the path
+	 * @param {Point} p2 - target point of the path
+	 *
+	 * @return {Point[]} array of points representing the path
+	 */
 	public findPathForTwoPoints(p1: Point, p2: Point): Point[]
 	{
 		const result: Point[] = [];
@@ -176,6 +187,12 @@ class Polygon
 		return result;
 	}
 
+	/**
+	 * Finds the nearest vertex that could be directly connected with a certain point
+	 *
+	 * @param {Point} p - point we are finding vertices for
+	 * @param {Point} target - target point, used to build heuristic function for A* search
+	 */
 	private findNearestReachableVertexForPoint(p: Point, target: Point): Point
 	{
 		let minDistance = Infinity;

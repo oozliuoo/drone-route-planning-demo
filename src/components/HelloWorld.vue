@@ -20,15 +20,17 @@
 			</div>
 		</div>
 		<button :class="$style.generateButton" @click="onGeneratePolygonClick"> Generate Polygon </button>
+		<button :class="$style.generateButton" @click="onClearClick"> Clear </button>
+		<button :class="$style.generateButton" @click="drawFlightRouteClick"> Generate Flight Route </button>
+		<!-- Following elements are for testing purposes, commenting out
 		<button :class="$style.generateButton" @click="onGenerateLineSegmentClick"> Generate Line Segment </button>
 		<button :class="$style.generateButton" @click="onCheckIntersectionClick"> Check Polygon and line intersect </button>
 		<button :class="$style.generateButton" @click="onCheckTwoPointSeeEachOtherClick"> Check two points can see each other </button>
 		<button :class="$style.generateButton" @click="onCheckPointInPolygonClick"> Check point in polygon </button>
 		<button :class="$style.generateButton" @click="onCheckFindPathInPolygonClick"> Check find path in polygon </button>
 		<button :class="$style.generateButton" @click="onCheckIntersectionPointClick"> Check intersection </button>
-		<button :class="$style.generateButton" @click="onClearClick"> Clear </button>
-		<button :class="$style.generateButton" @click="drawFlightRouteClick"> Generate Flight Route </button>
 		<button :class="$style.generateButton" @click="drawFlightRouteIntersectionClick"> Generate Flight Route, intersection only </button>
+		-->
 	</div>
 </template>
 

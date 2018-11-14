@@ -158,7 +158,7 @@ export default class FlightRoutePlanner
 			while (lines.length > 0)
 			{
 				const line = lines.shift();
-				const firstTwoValidPoints = this.getFirstPairOfPoint(polygon, polylines, line, direction);
+				const firstTwoValidPoints = this.getFirstPairOfPoint(rotatedPolygon, polylines, line, direction);
 
 				if (firstTwoValidPoints.length > 0)
 				{
@@ -195,7 +195,7 @@ export default class FlightRoutePlanner
 
 				GaodeHelper.getInstance().drawMarker(rotatedPolylinesVertices[i], true, i.toString());
 				recordedLines.push(l);
-				await delay(1000);
+				await delay(200);
 			}
 
 			return recordedLines;
